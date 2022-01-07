@@ -1,0 +1,800 @@
+[
+    {
+        "id": "28294eb7.061e22",
+        "type": "tab",
+        "label": "S7Connector to CSV Example",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "772c44fc.54f02c",
+        "type": "csv",
+        "z": "28294eb7.061e22",
+        "name": "CSV Format",
+        "sep": ",",
+        "hdrin": true,
+        "hdrout": "none",
+        "multi": "one",
+        "ret": "\\n",
+        "temp": "",
+        "skip": 0,
+        "strings": true,
+        "include_empty_strings": false,
+        "include_null_values": false,
+        "x": 650,
+        "y": 560,
+        "wires": [
+            [
+                "fe15725c.b2623"
+            ]
+        ]
+    },
+    {
+        "id": "fe15725c.b2623",
+        "type": "file",
+        "z": "28294eb7.061e22",
+        "name": "edge_report.csv",
+        "filename": "/home/nodered/node-red-home/_CSV/edge_report.csv",
+        "appendNewline": false,
+        "createDir": true,
+        "overwriteFile": "false",
+        "x": 740,
+        "y": 620,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "83268ec5.cce",
+        "type": "switch",
+        "z": "28294eb7.061e22",
+        "name": "if CSVWrite is Enabled",
+        "property": "csvWrite",
+        "propertyType": "flow",
+        "rules": [
+            {
+                "t": "true"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 300,
+        "y": 360,
+        "wires": [
+            [
+                "169613ab.44596c",
+                "3c88d029.d5d1c"
+            ]
+        ]
+    },
+    {
+        "id": "b15d1d5f.49b7b",
+        "type": "change",
+        "z": "28294eb7.061e22",
+        "name": "Set csvWrite = payload",
+        "rules": [
+            {
+                "t": "set",
+                "p": "csvWrite",
+                "pt": "flow",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 320,
+        "y": 560,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "e3663f4b.aed73",
+        "type": "inject",
+        "z": "28294eb7.061e22",
+        "name": "On",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "topic": "",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 110,
+        "y": 600,
+        "wires": [
+            [
+                "b15d1d5f.49b7b"
+            ]
+        ]
+    },
+    {
+        "id": "c060a68e.c68d08",
+        "type": "comment",
+        "z": "28294eb7.061e22",
+        "name": "transform message for CSV saving",
+        "info": "",
+        "x": 680,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "8e343530.a22638",
+        "type": "comment",
+        "z": "28294eb7.061e22",
+        "name": "Enable CSV Writing",
+        "info": "",
+        "x": 290,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "37334db4.560932",
+        "type": "ui_switch",
+        "z": "28294eb7.061e22",
+        "name": "Write",
+        "label": "Enable Write Data to CSV",
+        "tooltip": "",
+        "group": "7605e4c7.c2af4c",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "decouple": "true",
+        "topic": "",
+        "style": "",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "x": 110,
+        "y": 500,
+        "wires": [
+            [
+                "b15d1d5f.49b7b"
+            ]
+        ]
+    },
+    {
+        "id": "169613ab.44596c",
+        "type": "function",
+        "z": "28294eb7.061e22",
+        "name": "transform for CSV",
+        "func": "\n// init rows and timestamps temp array\nlet rows = {};\nlet timestamps = [];\n\nfor (let i=0; i < msg.payload.length; i++)\n{\n    // get index of column based on tag name\n    let nameIndex = msg.columns.indexOf(msg.payload[i].name);\n    // \n    if(timestamps.indexOf(msg.payload[i].ts) == -1)\n    {\n        timestamps.push(msg.payload[i].ts);\n        let nullRow = new Array(msg.columns.length -1).fill(null);\n        rows[msg.payload[i].ts] = [msg.payload[i].ts].concat(nullRow);\n    }\n    // timestamp is the key of rows objects\n    // each row is an array, where each element is a value \n    // which index correspond to column index\n    rows[msg.payload[i].ts][nameIndex] = msg.payload[i].value;\n}\n\nmsg.columns = msg.columns;\nmsg.payload = Object.values(rows);\n\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 570,
+        "y": 500,
+        "wires": [
+            [
+                "4c7cc2f.c21033c",
+                "772c44fc.54f02c"
+            ]
+        ]
+    },
+    {
+        "id": "562726bd.db8fb8",
+        "type": "mqtt in",
+        "z": "28294eb7.061e22",
+        "name": "",
+        "topic": "ie/m/j/simatic/v1/s7c1/#",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "f694ecfa.70c7c",
+        "x": 160,
+        "y": 100,
+        "wires": [
+            [
+                "a50c60f.8d319a"
+            ]
+        ]
+    },
+    {
+        "id": "a50c60f.8d319a",
+        "type": "function",
+        "z": "28294eb7.061e22",
+        "name": "Create S7ConnectionMap Variable",
+        "func": "// Create an object that contains each S7 Connector connection property\n// with different Map Objects to create correspondence between Tags IDs, Names and Types.\n\n\n// initialize the connections Mapping Object\nlet S7ConnectionMap = {\n    \"nameList\":[],      // array of available S7 Connections names. Order is the same in Map objects below.\n    \"typeList\":[],      // array of available S7 Connections types. Order is the same of nameList..\n    \"nameIDMaps\":[],    // array of Tags Names-IDs object. Order is the same of nameList.\n    \"IDnameMaps\":[],     // array of Tags IDs-Names Map object. Order is the same of nameList.\n    \"IDTypeMaps\":[]     // array of Tags IDs-Type Map object. Order is the same of nameList.    \n}\n\n// Check Payload\nlet m = msg.payload;\nif (m.seq == undefined) {\n    // update global maps\n    flow.set(\"S7ConnectionMap\", null);\n    // update function node status\n    node.status({fill:\"red\",shape:\"ring\",text:\"S7Map cannot be created\"});\n    \n    return null;\n}  \n\n// Iterate through connections\nfor (let i = 0; i < m.connections.length; i++)\n{\n    let connection = m.connections[i];\n    // push connection name and type in global object\n    S7ConnectionMap.nameList.push(connection.name);\n    S7ConnectionMap.typeList.push(connection.type);\n    // init maps\n    let nameIDMap = new Map();\n    let IDNameMap = new Map();\n    let IDTypeMap = new Map();\n    \n    // Iterate through dataPoints\n    let dataPoints = connection.dataPoints;\n    for (let j = 0; j < dataPoints.length; j++)\n    {\n        let dataPoint = dataPoints[j];\n        // Iterate through dataPointDefinitions\n        let dataPointDefinitions = dataPoint.dataPointDefinitions;\n        for (let k = 0; k < dataPointDefinitions.length; k++)\n        {\n            let dataPointDefinition = dataPointDefinitions[k];\n            // push in maps the datapoint property\n            nameIDMap.set(dataPointDefinition.name, dataPointDefinition.id);\n            IDNameMap.set(dataPointDefinition.id, dataPointDefinition.name);\n            IDTypeMap.set(dataPointDefinition.id, dataPointDefinition.dataType);        \n        }\n    }\n    // push mappings in global object\n    S7ConnectionMap.nameIDMaps.push(nameIDMap);\n    S7ConnectionMap.IDnameMaps.push(IDNameMap);\n    S7ConnectionMap.IDTypeMaps.push(IDTypeMap);\n}\n\n\n// update global maps\nflow.set(\"S7ConnectionMap\", S7ConnectionMap);\n\n// set S7Map as output payload\nmsg.payload = S7ConnectionMap;\n\n// update function node status\nnode.status({fill:\"green\",shape:\"ring\",text:\"S7ConnectionMap created for \" + S7ConnectionMap.nameList.join()});\n\nreturn msg;\n\n\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 460,
+        "y": 100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1d0eebc.4c6f714",
+        "type": "function",
+        "z": "28294eb7.061e22",
+        "name": "filter tags",
+        "func": "// get S7Map variable\nlet S7ConnectionMap = flow.get(\"S7ConnectionMap\");\n\n// find index of fps716 connection\nlet connectionIndex = S7ConnectionMap.nameList.indexOf(\"1511_S7\");\n// usr the index to get the right map\nlet nameIDMap = S7ConnectionMap.nameIDMaps[connectionIndex];\n\n// SPECIFY HERE TAGS TO BE FILTERED\nlet tagList = [\"Voltage\", \"Current\", \"Power\"];\n\n// init out message\nlet outMsg = {\"payload\":[]};\n\n// iterate through readed datapoints\nfor (let i=0; i < msg.payload.vals.length; i++)\n{\n    for(let j=0; j < tagList.length; j++)\n    {\n        // search for the ID that correspond to our tag name\n        if (msg.payload.vals[i].id == nameIDMap.get(tagList[j]))\n        {\n            // push to out array\n            outMsg.payload.push({\"name\": tagList[j],\n                         \"value\": msg.payload.vals[i].val,\n                         \"ts\": msg.payload.vals[i].ts});\n        }\n    }\n}\n\n// send out msg if something is found\nif (outMsg.payload.length > 0)\n{\n    outMsg.columns = [\"ts\"].concat(tagList);\n    return outMsg;\n}",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 500,
+        "y": 220,
+        "wires": [
+            [
+                "83268ec5.cce"
+            ]
+        ]
+    },
+    {
+        "id": "6c274ccf.e29c24",
+        "type": "mqtt in",
+        "z": "28294eb7.061e22",
+        "name": "",
+        "topic": "ie/d/j/simatic/v1/s7c1/dp/r/1511_S7/default",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "f694ecfa.70c7c",
+        "x": 220,
+        "y": 220,
+        "wires": [
+            [
+                "b6b6d9b6.cbe368",
+                "1d0eebc.4c6f714"
+            ]
+        ]
+    },
+    {
+        "id": "b6b6d9b6.cbe368",
+        "type": "debug",
+        "z": "28294eb7.061e22",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 510,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "4c7cc2f.c21033c",
+        "type": "debug",
+        "z": "28294eb7.061e22",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 750,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "3c88d029.d5d1c",
+        "type": "file in",
+        "z": "28294eb7.061e22",
+        "name": "edge_report.csv",
+        "filename": "/home/nodered/node-red-home/_CSV/edge_report.csv",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "x": 620,
+        "y": 320,
+        "wires": [
+            [
+                "c1828509.6de8c8",
+                "99809be2.c84468"
+            ]
+        ]
+    },
+    {
+        "id": "c1828509.6de8c8",
+        "type": "function",
+        "z": "28294eb7.061e22",
+        "name": "init headers",
+        "func": "// get first row of csv \nlet headers = msg.payload.split(\"\\n\")[0];\n\n// check if actual data columns are same as csv header\nif (msg.columns.join() != headers)\n{\n    // if not, reset file and put header as first row\n    node.send({\"payload\": msg.columns.join() +\"\\n\"});\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 890,
+        "y": 320,
+        "wires": [
+            [
+                "57c770a1.dfbe9"
+            ]
+        ]
+    },
+    {
+        "id": "a190daf.08c6528",
+        "type": "catch",
+        "z": "28294eb7.061e22",
+        "name": "catch csv file error",
+        "scope": [
+            "3c88d029.d5d1c"
+        ],
+        "uncaught": false,
+        "x": 710,
+        "y": 280,
+        "wires": [
+            [
+                "20b10bcb.bb1c34"
+            ]
+        ]
+    },
+    {
+        "id": "20b10bcb.bb1c34",
+        "type": "function",
+        "z": "28294eb7.061e22",
+        "name": "init csv file",
+        "func": "if (msg.hasOwnProperty(\"error\"))\n{\n    if(msg.error.message.search(\"no such file or directory\"))\n    {\n        node.send({\"payload\": \"\"});\n    }\n}",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 890,
+        "y": 280,
+        "wires": [
+            [
+                "57c770a1.dfbe9"
+            ]
+        ]
+    },
+    {
+        "id": "57c770a1.dfbe9",
+        "type": "file",
+        "z": "28294eb7.061e22",
+        "name": "edge_report.csv",
+        "filename": "/home/nodered/node-red-home/_CSV/edge_report.csv",
+        "appendNewline": false,
+        "createDir": true,
+        "overwriteFile": "true",
+        "encoding": "utf8",
+        "x": 1080,
+        "y": 280,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "6f8169d5.db5cb8",
+        "type": "inject",
+        "z": "28294eb7.061e22",
+        "name": "Clear CSV",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "",
+        "topic": "",
+        "payload": "",
+        "payloadType": "str",
+        "x": 120,
+        "y": 700,
+        "wires": [
+            [
+                "4b45f127.36dba"
+            ]
+        ]
+    },
+    {
+        "id": "4b45f127.36dba",
+        "type": "file",
+        "z": "28294eb7.061e22",
+        "name": "edge_report.csv",
+        "filename": "/home/nodered/node-red-home/_CSV/edge_report.csv",
+        "appendNewline": false,
+        "createDir": true,
+        "overwriteFile": "true",
+        "encoding": "utf8",
+        "x": 280,
+        "y": 720,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1e971564.e8d74b",
+        "type": "comment",
+        "z": "28294eb7.061e22",
+        "name": "Create S7ConnectionMap Global Variable to help mapping tags properties",
+        "info": "",
+        "x": 320,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "e46c4071.e36f4",
+        "type": "comment",
+        "z": "28294eb7.061e22",
+        "name": "Use S7ConnectionMap to filter selected tags  for CSV",
+        "info": "",
+        "x": 250,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "cdc0381e.e38ce8",
+        "type": "comment",
+        "z": "28294eb7.061e22",
+        "name": "if file not exist, create it",
+        "info": "",
+        "x": 720,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "c08e2085.7e41f",
+        "type": "comment",
+        "z": "28294eb7.061e22",
+        "name": "if file has not headers, reset file and write them",
+        "info": "",
+        "x": 990,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "b9e11267.b394b",
+        "type": "comment",
+        "z": "28294eb7.061e22",
+        "name": "Clear CSV File Content",
+        "info": "",
+        "x": 140,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "d7f22302.3618c",
+        "type": "inject",
+        "z": "28294eb7.061e22",
+        "name": "Off",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "",
+        "topic": "",
+        "payload": "false",
+        "payloadType": "bool",
+        "x": 110,
+        "y": 560,
+        "wires": [
+            [
+                "b15d1d5f.49b7b"
+            ]
+        ]
+    },
+    {
+        "id": "99809be2.c84468",
+        "type": "function",
+        "z": "28294eb7.061e22",
+        "name": "get CSV info",
+        "func": "// save csv to flow.csvContent\nflow.set(\"csvContent\", msg.payload);\n\n// get all rows of csv \nlet rows = msg.payload.split(\"\\n\");\n\nif (rows[0] != \"\")\n{\n    // count rows (last row is empty)\n    let numRows = rows.length -1;\n    // get timerange\n    let firstTime = rows[1].split(\",\")[0];\n    let lastTime = rows[numRows - 2].split(\",\")[0];\n    // get columns\n    let columns = rows[0]\n    \n    let statusText = \"columns: \" + columns +\n                      \", rows: \" + numRows +\n                      \", from: \" + firstTime +\n                      \", to: \" + lastTime;\n    \n    \n    // \n    node.status({fill:\"green\",\n                 shape:\"ring\",\n                 text: statusText})\n                 \n                      \n    node.send({\"cols\": columns,\n               \"rows\": numRows,\n               \"from\": firstTime,\n               \"to\": lastTime})\n}\n\n\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 630,
+        "y": 380,
+        "wires": [
+            [
+                "efff2ad8.5a18f8"
+            ]
+        ]
+    },
+    {
+        "id": "a6d6c9e1.b6dce8",
+        "type": "http in",
+        "z": "28294eb7.061e22",
+        "name": "",
+        "url": "/ui/report.csv",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 510,
+        "y": 720,
+        "wires": [
+            [
+                "eb2ff78b.e72278"
+            ]
+        ]
+    },
+    {
+        "id": "eb2ff78b.e72278",
+        "type": "function",
+        "z": "28294eb7.061e22",
+        "name": "get csv content",
+        "func": "// set headers\nmsg.headers = {\"Content-Type\": \"text/csv\"}\n// set payload as csv text\nmsg.payload = flow.get(\"csvContent\") || \"\";\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 700,
+        "y": 720,
+        "wires": [
+            [
+                "2c86adef.f738e2"
+            ]
+        ]
+    },
+    {
+        "id": "2c86adef.f738e2",
+        "type": "http response",
+        "z": "28294eb7.061e22",
+        "name": "",
+        "statusCode": "200",
+        "headers": {},
+        "x": 880,
+        "y": 720,
+        "wires": []
+    },
+    {
+        "id": "eeca903b.d4779",
+        "type": "comment",
+        "z": "28294eb7.061e22",
+        "name": "Using https://[IED-IP-ADDRESS]/ui/report.csv is it possible to download the CSV file, or download it by Clicink on Dashboard button",
+        "info": "",
+        "x": 780,
+        "y": 680,
+        "wires": []
+    },
+    {
+        "id": "9a184ce0.cb9b9",
+        "type": "ui_template",
+        "z": "28294eb7.061e22",
+        "group": "7605e4c7.c2af4c",
+        "name": "Download CSV Button",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "format": "<style>\n#dButton:hover {\n  background-color: rgba(0, 148, 205, 0.5);\n}\n#dButton {\n  color: white;\n  height: 4em;\n  width: 100%;\n  padding: 1.5em auto;\n  margin: 1em auto;\n  background-color: rgb(0, 148, 205);\n  border: none;\n  border-radius: 3px;\n  text-transform: uppercase;\n  transition: all 0.2s cubic-bezier(.4,0,.2,1);\n}\n\n</style>\n<form action=\"/ui/report.csv\" method=\"download\">\n    <input type=\"submit\" value=\"Download Data\" name=\"dButton\" id=\"dButton\" />\n    </form>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "x": 1080,
+        "y": 720,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ab5fbce4.07151",
+        "type": "ui_text",
+        "z": "28294eb7.061e22",
+        "group": "88b2974b.754f98",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "columns",
+        "format": "{{msg.cols}}",
+        "layout": "row-spread",
+        "x": 1060,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "d8bc7bef.87fbf8",
+        "type": "ui_text",
+        "z": "28294eb7.061e22",
+        "group": "88b2974b.754f98",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "from",
+        "format": "{{msg.from}}",
+        "layout": "row-spread",
+        "x": 1050,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "7c391fdb.260ba",
+        "type": "ui_text",
+        "z": "28294eb7.061e22",
+        "group": "88b2974b.754f98",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "to",
+        "format": "{{msg.to}}",
+        "layout": "row-spread",
+        "x": 1050,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "4aed31dd.85223",
+        "type": "ui_text",
+        "z": "28294eb7.061e22",
+        "group": "88b2974b.754f98",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "rows",
+        "format": "{{msg.rows}}",
+        "layout": "row-spread",
+        "x": 1050,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "478aa50.190e15c",
+        "type": "link in",
+        "z": "28294eb7.061e22",
+        "name": "toWidgets",
+        "links": [
+            "efff2ad8.5a18f8"
+        ],
+        "x": 935,
+        "y": 500,
+        "wires": [
+            [
+                "ab5fbce4.07151",
+                "4aed31dd.85223",
+                "d8bc7bef.87fbf8",
+                "7c391fdb.260ba"
+            ]
+        ]
+    },
+    {
+        "id": "efff2ad8.5a18f8",
+        "type": "link out",
+        "z": "28294eb7.061e22",
+        "name": "csvInfo",
+        "links": [
+            "478aa50.190e15c"
+        ],
+        "x": 735,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "4c8a48c4.9039e8",
+        "type": "comment",
+        "z": "28294eb7.061e22",
+        "name": "Display CSV Information",
+        "info": "",
+        "x": 1050,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "c0b52563.3dee18",
+        "type": "inject",
+        "z": "28294eb7.061e22",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "csvWrite",
+        "payloadType": "flow",
+        "x": 150,
+        "y": 460,
+        "wires": [
+            [
+                "37334db4.560932"
+            ]
+        ]
+    },
+    {
+        "id": "d71dee5b.c4254",
+        "type": "ui_button",
+        "z": "28294eb7.061e22",
+        "name": "",
+        "group": "7605e4c7.c2af4c",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Clear CSV",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "x": 110,
+        "y": 740,
+        "wires": [
+            [
+                "4b45f127.36dba"
+            ]
+        ]
+    },
+    {
+        "id": "7605e4c7.c2af4c",
+        "type": "ui_group",
+        "name": "Controls",
+        "tab": "6e48265e.dedc18",
+        "order": 2,
+        "disp": true,
+        "width": "8",
+        "collapse": false
+    },
+    {
+        "id": "f694ecfa.70c7c",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "ie-databus",
+        "port": "1883",
+        "clientid": "",
+        "usetls": false,
+        "compatmode": false,
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": ""
+    },
+    {
+        "id": "88b2974b.754f98",
+        "type": "ui_group",
+        "name": "Info",
+        "tab": "6e48265e.dedc18",
+        "order": 2,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "6e48265e.dedc18",
+        "type": "ui_tab",
+        "name": "CSV Example",
+        "icon": "dashboard",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    }
+]
