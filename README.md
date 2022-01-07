@@ -97,7 +97,7 @@ In this example we will use `edge` user and `edge` password, as can be seen from
 For the purpose of this application example, three variables will be considered, summarized in the following table:
 
 | **Datapoint Id**      |	**S7+ Address**     	| **Data Type** |**Acquisition Cycle**|**Acquisition Mode**|**Access Mode**|
-|:----------------------|:---------|:---------|:-----------------------|:----------------------|:---------|:--------------|
+|:----------------------|:----------------------|:--------------|:--------------------|:-------------------|:--------------|
 | Voltage	|	%DB13.DBD0		|     Real | 500 ms | CyclicContinuous  | Read          |
 | Current	|	%DB13.DBD4		|     Real | 500 ms | CyclicContinuous  | Read          |
 | Power	  | %DB13.DBD8	  |	    Real | 500 ms | CyclicContinuous  | Read&Write    |
